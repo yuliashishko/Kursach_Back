@@ -74,15 +74,52 @@ def post_couriers():
 def patch_courier(id):
     session = db_session.create_session()
     get_data = request.json
-    if not check_keys(get_data.keys(), ('courier_id', 'courier_type', 'regions', 'working_hours')):
+    if not check_all_keys_in_dict(get_data, ('courier_id', 'courier_type', 'regions', 'working_hours')):
         return make_resp('', 400)
     courier = session.query(Courier).filter(Courier.courier_id == id).first()
     if courier:
         if 'courier_type' in get_data.keys():
+            session.query(Courier).filter(Courier.courier_id == id).update({
+                'courier_type': get_data['courier_type']
+            }
+            )
+        if 'regions' in get_data.keys():
+            regions = []
+            for j in get_data['regions']:
+                region = Region(
+                    region=j,
+                    courier_id=id
+                )
+                regions.append(region)
+            session.query(Courier).filter(Courier.courier_id == id).update({
+                "regions": regions
+            }
+            )
+        if 'working_hours' in get_data.keys():
+            working_hours = []
+            for j in get_data['working_hours']:
+                working_hour = WorkingHour(
+                    working_hour=j,
+                    courier_id=id
+                )
+                working_hours.append(working_hour)
+            session.query(Courier).filter(Courier.courier_id == id).update({
+                "working_hours":working_hours
+            }
+            )
 
-        session.query(Courier).filter(Courier.courier_id == id).update(
-
-        )
+        courier_type = courier.courier_type
+        regions = [i.region for i in courier.regions]
+        working_hours = [i.working_hour for i in courier.working_hours]
+        session.commit()
+        return make_resp(
+            {
+                "courier_id": id,
+                "courier_type": courier_type,
+                "regions": regions,
+                "working_hours": working_hours
+            }
+            , 200)
 
 
 def main():
