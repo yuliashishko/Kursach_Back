@@ -13,3 +13,5 @@ def check_keys(dct, keys):
 
 def check_all_keys_in_dict(dct, keys):
     return all(key in keys for key in dct.keys())
+
+

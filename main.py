@@ -4,6 +4,8 @@ from werkzeug.exceptions import abort
 from werkzeug.utils import redirect
 from data import db_session
 from data.courier import Courier
+from data.delivery_hour import DeliveryHour
+from data.order import Order
 from data.region import Region
 from data.working_hour import WorkingHour
 from utils import make_resp, check_keys, check_all_keys_in_dict
@@ -84,34 +86,14 @@ def patch_courier(id):
             }
             )
         if 'regions' in get_data.keys():
-            regions = []
-            for j in get_data['regions']:
-                region = Region(
-                    region=j,
-                    courier_id=id
-                )
-                regions.append(region)
-            session.query(Courier).filter(Courier.courier_id == id).update({
-                "regions": regions
-            }
-            )
+            courier.update_regions(get_data['regions'], session)
         if 'working_hours' in get_data.keys():
-            working_hours = []
-            for j in get_data['working_hours']:
-                working_hour = WorkingHour(
-                    working_hour=j,
-                    courier_id=id
-                )
-                working_hours.append(working_hour)
-            session.query(Courier).filter(Courier.courier_id == id).update({
-                "working_hours":working_hours
-            }
-            )
-
+            courier.update_working_hours(get_data['working_hours'], session)
+        session.commit()
+        courier = session.query(Courier).filter(Courier.courier_id == id).first()
         courier_type = courier.courier_type
         regions = [i.region for i in courier.regions]
         working_hours = [i.working_hour for i in courier.working_hours]
-        session.commit()
         return make_resp(
             {
                 "courier_id": id,
@@ -120,7 +102,51 @@ def patch_courier(id):
                 "working_hours": working_hours
             }
             , 200)
+    else:
+        return make_resp('', 400)
 
+def post_orders():
+    session = db_session.create_session()
+    data = request.json
+    validation_error = []
+    ids = []
+    for i in data['data']:
+        if not check_keys(i, ('order_id', 'weight', 'region', 'delivery_hours')) or \
+                not check_all_keys_in_dict(i, ('order_id', 'weight', 'region', 'delivery_hours')):
+            validation_error.append({"id": i['order_id']})
+        else:
+            order = session.query(Order).filter(Order.order_id == i['order_id']).first()
+            if order:
+                session.delete(order)
+                session.commit()
+            ids.append({"id": i['order_id']})
+            delivery_hours = []
+            for j in i['delivery_hours']:
+                delivery_hour = DeliveryHour(
+                    delivery_hour=j,
+                    order_id=i['order_id']
+                )
+                delivery_hours.append(delivery_hour)
+            order = Order(
+                order_id=i['order_id'],
+                weight=i['weight'],
+                region=i['region'],
+                delivery_hours=delivery_hours
+            )
+            session.add(order)
+            session.commit()
+    if validation_error:
+        return make_resp(
+            {
+                'validation_error': {
+                    "orders": validation_error
+                }
+            }, 400)
+    else:
+        return make_resp(
+            {
+                "orders": ids
+            }, 201)
 
 def main():
     db_session.global_init("db/yaschool")

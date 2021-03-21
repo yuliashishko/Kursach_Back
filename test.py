@@ -31,7 +31,8 @@ from pip._vendor.requests import post, get
 #                ]
 #            }).json())
 
-print(requests.patch('http://localhost:5000/couriers/2', json=
-{
-    'regions': [1, 2, 3]
-}).json())
+# print(requests.patch('http://localhost:5000/couriers/900', json=
+# {
+#     'regions': [1, 2, 3]
+# }).json())
+
