@@ -14,15 +14,6 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'flag_is_here'
 
 
-@app.route('/', methods=['GET'])
-def do_huynya():
-    return make_resp('Гет-хуйня работает', 200)
-
-
-@app.route('/', methods=['POST'])
-def do_huynya2():
-    return make_resp('Пост-хуйня работает', 201)
-
 
 @app.route('/couriers', methods=['POST'])
 def post_couriers():
@@ -105,6 +96,8 @@ def patch_courier(id):
     else:
         return make_resp('', 400)
 
+
+@app.route('/orders', methods=['POST'])
 def post_orders():
     session = db_session.create_session()
     data = request.json
@@ -147,6 +140,28 @@ def post_orders():
             {
                 "orders": ids
             }, 201)
+
+
+@app.route("/couriers/<int:id>", methods=["GET"])
+def get_courier(id):
+    session = db_session.create_session()
+    courier = session.query(Courier).filter(Courier.courier_id == id).first()
+    if courier:
+        courier_type = courier.courier_type
+        regions = [i.region for i in courier.regions]
+        working_hours = [i.working_hour for i in courier.working_hours]
+        rating = courier.get_rating(session)
+        earnings = courier.get_earning(session)
+        return make_resp({"courier_id": id,
+                          "courier_type": courier_type,
+                          "regions": regions,
+                          "working_hours": working_hours,
+                          "rating": rating,
+                          "earnings": earnings
+                          }, 200)
+    else:
+        return make_resp({'Message': "Courier not found"}, 400)
+
 
 def main():
     db_session.global_init("db/yaschool")

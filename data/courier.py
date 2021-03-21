@@ -27,3 +27,9 @@ class Courier(SqlAlchemyBase):
         for i in hours:
             session.add(WorkingHour(working_hour=i, courier_id=self.courier_id))
         session.commit()
+
+    def get_rating(self, session):
+        return 0
+
+    def get_earning(self, session):
+        return 0
