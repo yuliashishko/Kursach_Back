@@ -8,7 +8,7 @@ class OrderInProgress(SqlAlchemyBase):
     order_in_progress_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
 
     order_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("orders.order_id"))
-    courier_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("couriers.couriers_id"))
+    courier_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("couriers.courier_id"))
     assign_time = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)
     complete_time = sqlalchemy.Column(sqlalchemy.DateTime, nullable=True)
 

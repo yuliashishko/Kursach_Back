@@ -12,6 +12,7 @@ class Order(SqlAlchemyBase):
     region = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
 
     delivery_hours = orm.relation("DeliveryHour", back_populates='order')
+    order_in_progress = orm.relation("OrderInProgress", back_populates='order')
 
     def update_delivery_hours(self, hours, session):
         session.query(DeliveryHour).filter(DeliveryHour.order_id == self.order_id).delete()
