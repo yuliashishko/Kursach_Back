@@ -1,3 +1,5 @@
+import datetime
+
 from pip._vendor import requests
 from pip._vendor.requests import post, get
 
@@ -36,3 +38,6 @@ from pip._vendor.requests import post, get
 #     'regions': [1, 2, 3]
 # }).json())
 
+hours, minutes = map(int, "10:20".split(':'))
+start = datetime.time(hour=hours, minute=minutes)
+print(start)

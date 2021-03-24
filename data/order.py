@@ -1,7 +1,7 @@
 import sqlalchemy
 from sqlalchemy import orm
 from .db_session import SqlAlchemyBase
-
+from .delivery_hour import DeliveryHour
 
 
 class Order(SqlAlchemyBase):
@@ -12,3 +12,11 @@ class Order(SqlAlchemyBase):
     region = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
 
     delivery_hours = orm.relation("DeliveryHour", back_populates='order')
+
+    def update_delivery_hours(self, hours, session):
+        session.query(DeliveryHour).filter(DeliveryHour.order_id == self.order_id).delete()
+        for i in hours:
+            hour = DeliveryHour(courier_id=self.courier_id)
+            hour.set_delivery_hour(i)
+            session.add(hour)
+        session.commit()

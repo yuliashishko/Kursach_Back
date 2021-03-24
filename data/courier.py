@@ -25,7 +25,9 @@ class Courier(SqlAlchemyBase):
     def update_working_hours(self, hours, session):
         session.query(WorkingHour).filter(WorkingHour.courier_id == self.courier_id).delete()
         for i in hours:
-            session.add(WorkingHour(working_hour=i, courier_id=self.courier_id))
+            hour = WorkingHour(courier_id=self.courier_id)
+            hour.set_working_hour(i)
+            session.add(hour)
         session.commit()
 
     def get_rating(self, session):

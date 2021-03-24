@@ -1,3 +1,5 @@
+import datetime
+
 import sqlalchemy
 from sqlalchemy import orm
 from .db_session import SqlAlchemyBase
@@ -8,7 +10,17 @@ class WorkingHour(SqlAlchemyBase):
 
     working_hour_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
 
-    working_hour = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    start = sqlalchemy.Column(sqlalchemy.Time, nullable=False)
+    end = sqlalchemy.Column(sqlalchemy.Time, nullable=False)
     courier_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("couriers.courier_id"))
 
     courier = orm.relation("Courier")
+
+    def set_working_hour(self, working_hour: str):
+        begin, end = working_hour.split('-')
+        self.start = datetime.time(*map(int, begin.split(':')))
+        self.end = datetime.time(*map(int, end.split(':')))
+
+    @property
+    def working_hour(self):
+        return f'{self.start.hour}:{self.start.minute}-{self.end.hour}:{self.end.minute}'
