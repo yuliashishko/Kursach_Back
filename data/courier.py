@@ -15,6 +15,7 @@ class Courier(SqlAlchemyBase):
 
     regions = orm.relation("Region", back_populates='courier')
     working_hours = orm.relation("WorkingHour", back_populates='courier')
+    orders = orm.relation("Order_in_progress", back_populates='courier')
 
     def update_regions(self, regions, session):
         session.query(Region).filter(Region.courier_id == self.courier_id).delete()
