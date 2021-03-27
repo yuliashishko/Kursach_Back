@@ -66,8 +66,8 @@ from pip._vendor.requests import post, get
 #             "delivery_hours": ["09:00-12:00", "16:00-21:30"]
 #         }]
 # }))
-print(requests.post('http://localhost:5000/orders/assign', json=
-{
-    'courier_id': 1
-}).json())
-
+# print(requests.post('http://localhost:5000/orders/assign', json=
+# {
+#     'courier_id': 2
+# }).json())
+# print(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
