@@ -23,4 +23,4 @@ class WorkingHour(SqlAlchemyBase):
 
     @property
     def working_hour(self):
-        return f'{self.start.hour}:{self.start.minute}-{self.end.hour}:{self.end.minute}'
+        return f"{self.start.strftime('%H:%M')}-{self.end.strftime('%H:%M')}"

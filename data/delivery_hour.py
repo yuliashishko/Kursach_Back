@@ -10,8 +10,8 @@ class DeliveryHour(SqlAlchemyBase):
 
     delivery_hour_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
 
-    start = sqlalchemy.Column(sqlalchemy.Time, nullable=False)
-    end = sqlalchemy.Column(sqlalchemy.Time, nullable=False)
+    start = sqlalchemy.Column(sqlalchemy.Time)
+    end = sqlalchemy.Column(sqlalchemy.Time)
     order_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("orders.order_id"))
 
     order = orm.relation("Order")
@@ -25,4 +25,4 @@ class DeliveryHour(SqlAlchemyBase):
 
     @property
     def delivery_hour(self):
-        return f'{self.start.hour}:{self.start.minute}-{self.end.hour}:{self.end.minute}'
+        return f"{self.start.strftime('%H:%M')}-{self.end.strftime('%H:%M')}"

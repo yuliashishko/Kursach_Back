@@ -10,9 +10,10 @@ class Order(SqlAlchemyBase):
 
     weight = sqlalchemy.Column(sqlalchemy.Float, nullable=False)
     region = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
+    is_taken = sqlalchemy.Column(sqlalchemy.Integer, default=False)
 
     delivery_hours = orm.relation("DeliveryHour", back_populates='order')
-    order_in_progress = orm.relation("OrderInProgress", back_populates='order')
+
 
     def update_delivery_hours(self, hours, session):
         session.query(DeliveryHour).filter(DeliveryHour.order_id == self.order_id).delete()
