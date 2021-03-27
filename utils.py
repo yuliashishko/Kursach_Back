@@ -15,3 +15,5 @@ def check_all_keys_in_dict(dct, keys):
     return all(key in keys for key in dct.keys())
 
 
+def check_time_in_times(times, curr):
+    return any(map(lambda s: s.start <= curr.start <= s.end or curr.start <= s.start <= curr.end, times))

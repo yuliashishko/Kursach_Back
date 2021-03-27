@@ -33,10 +33,7 @@ from pip._vendor.requests import post, get
 #                ]
 #            }).json())
 
-# print(requests.patch('http://localhost:5000/couriers/900', json=
-# {
-#     'regions': [1, 2, 3]
-# }).json())
+
 
 # print(requests.post('http://localhost:5000/orders', json=
 # {
@@ -66,8 +63,12 @@ from pip._vendor.requests import post, get
 #             "delivery_hours": ["09:00-12:00", "16:00-21:30"]
 #         }]
 # }))
-# print(requests.post('http://localhost:5000/orders/assign', json=
+print(requests.post('http://localhost:5000/orders/assign', json=
+{
+    'courier_id': 3
+}).json())
+
+# print(requests.patch('http://localhost:5000/couriers/1', json=
 # {
-#     'courier_id': 2
+#     'regions': [1, 2, 3]
 # }).json())
-# print(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"))

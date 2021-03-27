@@ -11,7 +11,7 @@ from data.order import Order
 from data.order_in_progress import OrderInProgress
 from data.region import Region
 from data.working_hour import WorkingHour
-from utils import make_resp, check_keys, check_all_keys_in_dict
+from utils import make_resp, check_keys, check_all_keys_in_dict, check_time_in_times
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'flag_is_here'
@@ -88,6 +88,12 @@ def patch_courier(id):
         courier_type = courier.courier_type
         regions = [i.region for i in courier.regions]
         working_hours = [i.working_hour for i in courier.working_hours]
+        courier_orders = courier.orders
+        for i in courier_orders:
+            if i.order.region not in regions or not check_time_in_times(courier.working_hours, i.delivery_hour):
+                i.order.is_taken = False
+                session.query(OrderInProgress).filter(OrderInProgress.order_id == i.order_id).delete()
+        session.commit()
         return make_resp(
             {
                 "courier_id": id,
@@ -159,6 +165,13 @@ def order_assign():
         courier_regions = [i.region for i in courier.regions]
         # orders = session.query(Order).filter(Order.weight <= add_weight, Order.region.in_(courier_regions),
         #                                      ~Order.is_taken).limit(add_weight * 100).all()
+        if not courier.working_hours or not courier.regions:
+            return make_resp(
+                {
+                    "orders": [],
+                    "assign_time": time_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+                },
+                200)
         time_condition = "("
         region_condition = "("
         for hour in courier.working_hours:
@@ -171,7 +184,8 @@ def order_assign():
         region_condition += ")"
         res = session.execute("select * from orders o "
                               "join delivery_hours dh on o.order_id = dh.order_id  " +
-                              "where " + time_condition + " and " + region_condition + f" and o.weight <= {weight[courier.courier_type]} group by o.order_id limit {add_weight * 100}").fetchall()
+                              "where " + time_condition + " and " + region_condition +
+                              f" and o.weight <= {weight[courier.courier_type]} group by o.order_id limit {add_weight * 100}").fetchall()
         res_ids = [i[0] for i in res]
         orders = session.query(Order).filter(Order.order_id.in_(res_ids)).all()
         courier_orders = []
