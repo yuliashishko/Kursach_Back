@@ -232,7 +232,7 @@ def orders_complete():
     if complete_order:
         complete_order.complete_time = date_time
         complete_id = complete_order.order_id
-        session.merge(complete_order)
+        session.commit()
         return make_resp(
             {
                 "order_id": complete_id
