@@ -1,5 +1,7 @@
-from flask import make_response
+import datetime
 
+from flask import make_response
+BASE_COMPLETE_TIME = datetime.datetime.strptime("1900-01-01 00:00:00", '%Y-%m-%d %H:%M:%S')
 
 def make_resp(message, status):
     resp = make_response(message, status)

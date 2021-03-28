@@ -11,11 +11,11 @@ from data.order import Order
 from data.order_in_progress import OrderInProgress
 from data.region import Region
 from data.working_hour import WorkingHour
-from utils import make_resp, check_keys, check_all_keys_in_dict, check_time_in_times
+from utils import make_resp, check_keys, check_all_keys_in_dict, check_time_in_times, BASE_COMPLETE_TIME
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'flag_is_here'
-BASE_COMPLETE_TIME = datetime.datetime.strptime("1900-01-01 00:00:00", '%Y-%m-%d %H:%M:%S')
+
 
 
 @app.route('/couriers', methods=['POST'])
@@ -162,7 +162,7 @@ def order_assign():
         weight = {'foot': 10, 'bike': 15, 'car': 50}
         max_weight = weight[courier.courier_type]
         orders_in_progress = courier.orders
-        add_weight = max_weight - sum([i.order.weight for i in orders_in_progress])
+        add_weight = max_weight - sum([i.order.weight for i in orders_in_progress if i.complete_time == BASE_COMPLETE_TIME])
         courier_regions = [i.region for i in courier.regions]
         # orders = session.query(Order).filter(Order.weight <= add_weight, Order.region.in_(courier_regions),
         #                                      ~Order.is_taken).limit(add_weight * 100).all()
@@ -176,7 +176,7 @@ def order_assign():
         time_condition = "("
         region_condition = "("
         for hour in courier.working_hours:
-            time_condition += f" (dh.start between '{hour.start}' and '{hour.end}' or dh.end between '{hour.start}' and '{hour.end}') or "
+            time_condition += f"(dh.start <= '{hour.end}' and dh.end >= '{hour.start}') or "
         time_condition = time_condition[:-4]
         time_condition += ")"
         for reg in courier.regions:
@@ -200,6 +200,7 @@ def order_assign():
             order_in_progress = OrderInProgress(
                 order_id=order.order_id,
                 courier_id=courier.courier_id,
+                courier_type=courier.courier_type,
                 assign_time=time_now,
                 complete_time=BASE_COMPLETE_TIME
             )
@@ -223,14 +224,14 @@ def orders_complete():
     session = db_session.create_session()
     get_data = request.json
     date_time = datetime.datetime.strptime(get_data['complete_time'], '%Y-%m-%dT%H:%M:%S.%fZ')
-    if not check_all_keys_in_dict(get_data, ('courier_id', 'order_id', 'complete_time')):
-        return make_resp('', 400)
-    if not check_keys(get_data, ('courier_id', 'order_id', 'complete_time')):
+    if not check_all_keys_in_dict(get_data, ('courier_id', 'order_id', 'complete_time')) or \
+            not check_keys(get_data, ('courier_id', 'order_id', 'complete_time')):
         return make_resp('', 400)
     complete_order = session.query(OrderInProgress).filter(OrderInProgress.courier_id == get_data['courier_id'],
                                                            OrderInProgress.order_id == get_data['order_id']).first()
     if complete_order:
         complete_order.complete_time = date_time
+        complete_order.set_duration(session)
         complete_id = complete_order.order_id
         session.commit()
         return make_resp(
