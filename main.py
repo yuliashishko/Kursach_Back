@@ -12,7 +12,7 @@ from data.order_in_progress import OrderInProgress
 from data.region import Region
 from data.working_hour import WorkingHour
 from utils import make_resp, check_keys, check_all_keys_in_dict, check_time_in_times, BASE_COMPLETE_TIME
-
+from waitress import serve
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'flag_is_here'
 
@@ -169,8 +169,7 @@ def order_assign():
         if not courier.working_hours or not courier.regions:
             return make_resp(
                 {
-                    "orders": [],
-                    "assign_time": time_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+                    "orders": []
                 },
                 200)
         time_condition = "("
@@ -207,14 +206,21 @@ def order_assign():
             order.is_taken = True
             session.add(order_in_progress)
             session.commit()
-        orders = courier.orders
-        now = datetime.datetime.now()
-        return make_resp(
-            {
-                "orders": [{"id": i.order_id} for i in orders if i.complete_time == BASE_COMPLETE_TIME],
-                "assign_time": time_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-            },
-            200)
+        orders = [i for i in courier.orders if i.complete_time == BASE_COMPLETE_TIME]
+        if orders:
+            assign_time = max(orders, key=lambda s: s.assign_time)
+            return make_resp(
+                {
+                    "orders": [{"id": i.order_id} for i in orders if i.complete_time == BASE_COMPLETE_TIME],
+                    "assign_time": assign_time
+                },
+                200)
+        else:
+            return make_resp(
+                {
+                    "orders": []
+                },
+                200)
     else:
         return make_resp('', 400)
 
@@ -265,7 +271,8 @@ def get_courier(id):
 
 def main():
     db_session.global_init("db/yaschool.sqlite")
-    app.run()
+    #app.run(host='0.0.0.0', port="8080")
+    serve(app, host='0.0.0.0', port="8080")
 
 
 main()
