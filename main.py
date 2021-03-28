@@ -83,14 +83,15 @@ def patch_courier(id):
             courier.update_regions(get_data['regions'], session)
         if 'working_hours' in get_data.keys():
             courier.update_working_hours(get_data['working_hours'], session)
-        session.commit()
+
         courier = session.query(Courier).filter(Courier.courier_id == id).first()
         courier_type = courier.courier_type
         regions = [i.region for i in courier.regions]
         working_hours = [i.working_hour for i in courier.working_hours]
         courier_orders = courier.orders
         for i in courier_orders:
-            if i.order.region not in regions or not check_time_in_times(courier.working_hours, i.delivery_hour):
+            if i.order.region not in regions or not check_time_in_times(courier.working_hours,
+                                                                        i.order.delivery_hours[0]):
                 i.order.is_taken = False
                 session.query(OrderInProgress).filter(OrderInProgress.order_id == i.order_id).delete()
         session.commit()
@@ -184,7 +185,7 @@ def order_assign():
         region_condition += ")"
         res = session.execute("select * from orders o "
                               "join delivery_hours dh on o.order_id = dh.order_id  " +
-                              "where " + time_condition + " and " + region_condition +
+                              "where o.is_taken = 0 and " + time_condition + " and " + region_condition +
                               f" and o.weight <= {weight[courier.courier_type]} group by o.order_id limit {add_weight * 100}").fetchall()
         res_ids = [i[0] for i in res]
         orders = session.query(Order).filter(Order.order_id.in_(res_ids)).all()

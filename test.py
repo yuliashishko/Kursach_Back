@@ -3,10 +3,6 @@ import datetime
 from pip._vendor import requests
 from pip._vendor.requests import post, get
 
-# print(get('http://localhost:5000/'))
-# print(post('http://localhost:5000/', json={
-#     'msg': 'huynya'
-# }))
 # print(post('http://localhost:5000/couriers',
 #            json=
 #            {
@@ -34,41 +30,47 @@ from pip._vendor.requests import post, get
 #            }).json())
 
 
-
 # print(requests.post('http://localhost:5000/orders', json=
 # {
 #     "data": [
 #         {
-#             "order_id": 1,
+#             "order_id": 5,
 #             "weight": 0.23,
-#             "region": 12,
+#             "region": 1,
 #             "delivery_hours": ["09:00-18:00"]
 #         },
 #         {
-#             "order_id": 2,
+#             "order_id": 6,
 #             "weight": 15,
 #             "region": 1,
 #             "delivery_hours": ["09:00-18:00"]
 #         },
 #         {
-#             "order_id": 3,
+#             "order_id": 7,
 #             "weight": 0.01,
-#             "region": 22,
+#             "region": 1,
 #             "delivery_hours": ["09:00-12:00", "16:00-21:30"]
 #         },
 #         {
-#             "order_id": 4,
+#             "order_id": 8,
 #             "weight": 20.01,
-#             "region": 22,
+#             "region": 1,
 #             "delivery_hours": ["09:00-12:00", "16:00-21:30"]
 #         }]
 # }))
-print(requests.post('http://localhost:5000/orders/assign', json=
-{
-    'courier_id': 3
-}).json())
+# print(requests.post('http://localhost:5000/orders/assign', json=
+# {
+#     'courier_id': 1
+# }).json())
 
 # print(requests.patch('http://localhost:5000/couriers/1', json=
 # {
 #     'regions': [1, 2, 3]
 # }).json())
+
+print(requests.post('http://localhost:5000/orders/complete', json=
+{
+    "courier_id": 1,
+    "order_id": 7,
+    "complete_time": "2021-03-28T13:30:15.089Z"
+}).json())
