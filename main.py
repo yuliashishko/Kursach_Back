@@ -1,24 +1,33 @@
 import datetime
 
 from flask import Flask, request, jsonify
-from sqlalchemy.testing.plugin.plugin_base import post
-from werkzeug.exceptions import abort
-from werkzeug.utils import redirect
 from data import db_session
 from data.courier import Courier
 from data.delivery_hour import DeliveryHour
 from data.order import Order
 from data.order_in_progress import OrderInProgress
 from data.region import Region
+from data.user import User
 from data.working_hour import WorkingHour
 from utils import make_resp, check_keys, check_all_keys_in_dict, check_time_in_times, BASE_COMPLETE_TIME
-from waitress import serve
+from flask_cors import CORS
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash
+from flask_jwt_extended import (
+    JWTManager, jwt_required, create_access_token,
+    get_jwt_identity
+)
+
+
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'flag_is_here'
-
-
+CORS(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+app.config['SECRET_KEY'] = 'super_secret'
+jwt = JWTManager(app)
 
 @app.route('/couriers', methods=['POST'])
+@jwt_required
 def post_couriers():
     session = db_session.create_session()
     get_data = request.json
@@ -67,6 +76,7 @@ def post_couriers():
 
 
 @app.route('/couriers/<int:id>', methods=['PATCH'])
+@jwt_required
 def patch_courier(id):
     session = db_session.create_session()
     get_data = request.json
@@ -108,6 +118,7 @@ def patch_courier(id):
 
 
 @app.route('/orders', methods=['POST'])
+@jwt_required
 def post_orders():
     session = db_session.create_session()
     data = request.json
@@ -153,6 +164,7 @@ def post_orders():
 
 
 @app.route("/orders/assign", methods=["POST"])
+@jwt_required
 def order_assign():
     time_now = datetime.datetime.now()
     session = db_session.create_session()
@@ -162,7 +174,8 @@ def order_assign():
         weight = {'foot': 10, 'bike': 15, 'car': 50}
         max_weight = weight[courier.courier_type]
         orders_in_progress = courier.orders
-        add_weight = max_weight - sum([i.order.weight for i in orders_in_progress if i.complete_time == BASE_COMPLETE_TIME])
+        add_weight = max_weight - sum(
+            [i.order.weight for i in orders_in_progress if i.complete_time == BASE_COMPLETE_TIME])
         courier_regions = [i.region for i in courier.regions]
         # orders = session.query(Order).filter(Order.weight <= add_weight, Order.region.in_(courier_regions),
         #                                      ~Order.is_taken).limit(add_weight * 100).all()
@@ -226,6 +239,7 @@ def order_assign():
 
 
 @app.route("/orders/complete", methods=["POST"])
+@jwt_required
 def orders_complete():
     session = db_session.create_session()
     get_data = request.json
@@ -249,6 +263,7 @@ def orders_complete():
 
 
 @app.route("/couriers/<int:id>", methods=["GET"])
+@jwt_required
 def get_courier(id):
     session = db_session.create_session()
     courier = session.query(Courier).filter(Courier.courier_id == id).first()
@@ -269,10 +284,26 @@ def get_courier(id):
         return make_resp({'Message': "Courier not found"}, 400)
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    session = db_session.create_session()
+    response_object = {'status': 'success'}
+    post_data = request.get_json()
+    user = session.query(User).filter(User.username == post_data['username']).first()
+    if user and user.check_password(post_data['password']):
+        response_object['message'] = 'Login successfully'
+        access_token = create_access_token(identity=user.username)
+        response_object['token'] = access_token
+    else:
+        response_object['message'] = 'Incorrect username/password'
+        response_object['status'] = False
+    return jsonify(response_object)
+
+
 def main():
     db_session.global_init("db/yaschool.sqlite")
     app.run(host='0.0.0.0', port="8080")
-    #serve(app, host='0.0.0.0', port="8080")
+    # serve(app, host='0.0.0.0', port="8080")
 
 
 main()

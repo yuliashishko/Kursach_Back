@@ -13,10 +13,10 @@ class User(SqlAlchemyBase):
     username = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
     password = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     role = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
-    courier_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, default=-1)
+    name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    surname = sqlalchemy.Column(sqlalchemy.String, nullable=False)
 
-    role_name = orm.relation('Role')
-    courier = orm.relation('Courier')
+
 
     def set_password(self, password):
         self.password = generate_password_hash(password)
