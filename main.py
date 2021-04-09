@@ -271,8 +271,8 @@ def get_courier(id):
 
 def main():
     db_session.global_init("db/yaschool.sqlite")
-    #app.run(host='0.0.0.0', port="8080")
-    serve(app, host='0.0.0.0', port="8080")
+    app.run(host='0.0.0.0', port="8080")
+    #serve(app, host='0.0.0.0', port="8080")
 
 
 main()
