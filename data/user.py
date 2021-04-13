@@ -10,7 +10,7 @@ class User(SqlAlchemyBase):
 
     user_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
 
-    username = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
+    login = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True) # login = courier_id if role == 0 else admin
     password = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     role = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)

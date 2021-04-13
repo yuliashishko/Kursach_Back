@@ -13,7 +13,6 @@ class Courier(SqlAlchemyBase):
     __tablename__ = 'couriers'
 
     courier_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    user_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, default=0)
 
     courier_type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
 

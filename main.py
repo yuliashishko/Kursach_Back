@@ -74,6 +74,9 @@ def post_couriers():
                 "couriers": ids
             }, 201)
 
+@app.route('/couriers/<int:id>', methods=['PATCH'])
+def get_free_id():
+    session = db_session.create_session()
 
 @app.route('/couriers/<int:id>', methods=['PATCH'])
 @jwt_required
@@ -289,10 +292,10 @@ def login():
     session = db_session.create_session()
     response_object = {'status': 'success'}
     post_data = request.get_json()
-    user = session.query(User).filter(User.username == post_data['username']).first()
+    user = session.query(User).filter(User.login == post_data['login']).first()
     if user and user.check_password(post_data['password']):
-        response_object['message'] = 'Login successfully'
-        access_token = create_access_token(identity=user.username)
+        response_object['message'] = 'Logged in successfully'
+        access_token = create_access_token(identity=user.login)
         response_object['token'] = access_token
     else:
         response_object['message'] = 'Incorrect username/password'
