@@ -1,6 +1,8 @@
 import datetime
 
 from flask import Flask, request, jsonify
+from sqlalchemy import func
+
 from data import db_session
 from data.courier import Courier
 from data.delivery_hour import DeliveryHour
@@ -18,13 +20,13 @@ from flask_jwt_extended import (
     get_jwt_identity
 )
 
-
 app = Flask(__name__)
 CORS(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 app.config['SECRET_KEY'] = 'super_secret'
 jwt = JWTManager(app)
+
 
 @app.route('/couriers', methods=['POST'])
 @jwt_required
@@ -74,9 +76,13 @@ def post_couriers():
                 "couriers": ids
             }, 201)
 
-@app.route('/couriers/<int:id>', methods=['PATCH'])
+
+@app.route('/couriers/id', methods=['GET'])
 def get_free_id():
     session = db_session.create_session()
+    curr_id = session.query(func.max(Courier.courier_id)).scalar()
+    return curr_id + 1
+
 
 @app.route('/couriers/<int:id>', methods=['PATCH'])
 @jwt_required
@@ -301,6 +307,19 @@ def login():
         response_object['message'] = 'Incorrect username/password'
         response_object['status'] = False
     return jsonify(response_object)
+
+
+@app.route("/couriers", methods=["GET"])
+@jwt_required
+def get_courier():
+    session = db_session.create_session()
+    couriers = session.query(User).filter(User.role == 0).all()
+    all_answers = {}
+    for i in couriers:
+        courier = get_courier(i.login)
+        data = courier.json
+        all_answers[i] = data
+    return make_resp(all_answers, 400)
 
 
 def main():
